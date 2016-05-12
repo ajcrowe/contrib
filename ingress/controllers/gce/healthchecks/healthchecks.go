@@ -17,11 +17,14 @@ limitations under the License.
 package healthchecks
 
 import (
+	"time"
+
 	compute "google.golang.org/api/compute/v1"
+
+	"net/http"
 
 	"github.com/golang/glog"
 	"k8s.io/contrib/ingress/controllers/gce/utils"
-	"net/http"
 )
 
 // HealthChecks manages health checks.
@@ -86,4 +89,24 @@ func (h *HealthChecks) Delete(port int64) error {
 // Get returns the given health check.
 func (h *HealthChecks) Get(port int64) (*compute.HttpHealthCheck, error) {
 	return h.cloud.GetHttpHealthCheck(h.namer.BeName(port))
+}
+
+// HealthCheckParams represents healthcheck parameters within the Ingress annotations.
+type HealthCheckParams struct {
+	Path               string
+	Interval           time.Duration
+	Timeout            time.Duration
+	UnhealthyThreshold int64
+	HealthyThreshold   int64
+}
+
+// NewDefaultHealthCheckParams returns a healthCheckParams struct with default values.
+func NewDefaultHealthCheckParams() HealthCheckParams {
+	return HealthCheckParams{
+		Path:               "/",
+		Interval:           1 * time.Second,
+		Timeout:            1 * time.Second,
+		UnhealthyThreshold: 10,
+		HealthyThreshold:   1,
+	}
 }

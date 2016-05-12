@@ -22,6 +22,7 @@ import (
 	"time"
 
 	compute "google.golang.org/api/compute/v1"
+	"k8s.io/contrib/ingress/controllers/gce/healthchecks"
 	"k8s.io/contrib/ingress/controllers/gce/loadbalancers"
 	"k8s.io/contrib/ingress/controllers/gce/utils"
 	"k8s.io/kubernetes/pkg/api"
@@ -35,8 +36,13 @@ import (
 )
 
 const (
-	allowHTTPKey    = "kubernetes.io/ingress.allow-http"
-	staticIPNameKey = "kubernetes.io/ingress.global-static-ip-name"
+	allowHTTPKey                  = "kubernetes.io/ingress.allow-http"
+	staticIPNameKey               = "kubernetes.io/ingress.global-static-ip-name"
+	healthCheckPath               = "kubernetes.io/ingress.health-check-path"
+	healthCheckInternval          = "kubernetes.io/ingress.health-check-interval"
+	healthCheckTimeout            = "kubernetes.io/ingress.health-check-timeout"
+	healthCheckUnhealthyThreshold = "kubernetes.io/ingress.health-check-unhealthy-threshold"
+	healthCheckHealthyThreshold   = "kubernetes.io/ingress.health-check-healthy-threshold"
 )
 
 // ingAnnotations represents Ingress annotations.
@@ -61,6 +67,49 @@ func (ing ingAnnotations) staticIPName() string {
 		return ""
 	}
 	return val
+}
+
+func (ing ingAnnotations) healthCheckParams() healthchecks.HealthCheckParams {
+	hc := healthchecks.NewDefaultHealthCheckParams()
+	// set health check path if specific
+	val, ok := ing[healthCheckPath]
+	if ok {
+		// regex this
+		hc.Path = val
+	}
+	// set health check path if specific
+	val, ok = ing[healthCheckInternval]
+	if ok {
+		v, err := strconv.ParseInt(val, 64)
+		if err == nil {
+			hc.Interval = v * time.Second
+		}
+	}
+	// set health check timeout if specific
+	val, ok = ing[healthCheckTimeout]
+	if ok {
+		v, err := strconv.ParseInt(val, 64)
+		if err == nil {
+			hc.Timeout = v * time.Second
+		}
+	}
+	// set health check unheathly threshold if specific
+	val, ok = ing[healthCheckUnhealthyThreshold]
+	if ok {
+		v, err := strconv.ParseInt(val, 64)
+		if err == nil {
+			hc.UnhealthyThreshold = v
+		}
+	}
+	// set health check healthy threshold if specific
+	val, ok = ing[healthCheckHealthyThreshold]
+	if ok {
+		v, err := strconv.ParseInt(val, 64)
+		if err == nil {
+			hc.HealthyThreshold = v
+		}
+	}
+	return hc
 }
 
 // errorNodePortNotFound is an implementation of error.

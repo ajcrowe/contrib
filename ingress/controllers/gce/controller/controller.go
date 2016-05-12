@@ -370,10 +370,11 @@ func (lbc *LoadBalancerController) ListRuntimeInfo() (lbs []*loadbalancers.L7Run
 		}
 		annotations := ingAnnotations(ing.ObjectMeta.Annotations)
 		lbs = append(lbs, &loadbalancers.L7RuntimeInfo{
-			Name:         k,
-			TLS:          tls,
-			AllowHTTP:    annotations.allowHTTP(),
-			StaticIPName: annotations.staticIPName(),
+			Name:              k,
+			TLS:               tls,
+			AllowHTTP:         annotations.allowHTTP(),
+			StaticIPName:      annotations.staticIPName(),
+			HealthCheckParams: annotations.healthCheckParams(),
 		})
 	}
 	return lbs, nil

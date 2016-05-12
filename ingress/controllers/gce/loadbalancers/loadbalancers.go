@@ -27,6 +27,7 @@ import (
 
 	compute "google.golang.org/api/compute/v1"
 	"k8s.io/contrib/ingress/controllers/gce/backends"
+	"k8s.io/contrib/ingress/controllers/gce/healthchecks"
 	"k8s.io/contrib/ingress/controllers/gce/storage"
 	"k8s.io/contrib/ingress/controllers/gce/utils"
 	"k8s.io/kubernetes/pkg/util/sets"
@@ -251,6 +252,9 @@ type L7RuntimeInfo struct {
 	// The name of a Global Static IP. If specified, the IP associated with
 	// this name is used in the Forwarding Rules for this loadbalancer.
 	StaticIPName string
+	// HealthCheckParams stores the params to be use to create the healthchecks
+	// this is configurable with Ingress annotions
+	HealthCheckParams healthchecks.HealthCheckParams
 }
 
 // L7 represents a single L7 loadbalancer.
